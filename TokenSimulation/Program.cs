@@ -46,12 +46,13 @@ namespace TokenSimulation
         {
             for (var i = 0; i < computers.Length; i++)
             {
-                Console.WriteLine($"C{i} = {computers[i]};");
+                Console.WriteLine($"C{i} = {computers[i]}.");
             }
         }
 
         private static void RunSimulation(Computer[] computers)
         {
+            bool firstInput = true;
             Console.Write("Insert Computer Source: ");
             var source = int.Parse(Console.ReadLine());
             Console.Write("Insert Computer Destination: ");
@@ -59,8 +60,63 @@ namespace TokenSimulation
             Console.Write("Insert Message: ");
             var message = Console.ReadLine();
 
+           var currentIndex = source;
+            while (true)
+            {
+                
+                    computers[currentIndex].LocalToken = new Token
+                    {
+                        Message = message,
+                        IsFree = false
+                    };
+                
+                SendToken(computers, source, destination, message, currentIndex);
+                currentIndex = source;
+                PrintComputers(computers);
+
+                Console.Write("Insert Computer Source: ");
+                source = int.Parse(Console.ReadLine());
+                Console.Write("Insert Computer Destination: ");
+                destination = int.Parse(Console.ReadLine());
+                Console.Write("Insert Message: ");
+                message = Console.ReadLine();
+            }
+
+
 
         }
 
+        private static void SendToken(Computer[] computers, int source, int destination, string message, int currentIndex)
+        {
+            int previousIndex;
+            Token token = computers[currentIndex].LocalToken;
+            int TimesPassedSource = 0;
+            while(true)
+            {
+                if(currentIndex==source)
+                {
+                    TimesPassedSource++;
+                    if(TimesPassedSource>1)
+                    {
+                        Console.WriteLine($"C{source}: Am primit tokenul inapoi");
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"C{source}: Am preluat jetonul");
+                    }
+                }
+                if (currentIndex==destination && TimesPassedSource==1)
+                {
+                    Console.WriteLine($"C{destination}: Am ajuns la destinatie");
+                    computers[destination].Message = token.Message;
+                }
+                computers[currentIndex].LocalToken = null;
+                Console.WriteLine($"C{currentIndex}: Trimite tokenul");
+                previousIndex = currentIndex;
+                currentIndex = (currentIndex + 1) % computers.Length;
+                computers[currentIndex].LocalToken = token;
+            }
+        }
     }
 }

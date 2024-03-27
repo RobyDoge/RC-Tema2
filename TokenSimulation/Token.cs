@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 namespace TokenSimulation
 {
-    internal class Token
+    public class Token
     {
-        private string SourceIp { get; set; }
-        private string DestinationIp { get; set; }
-        private string Message { get; set; }
-        private bool IsFree { get; set; }
+        public string Message { get; set; }
+        public bool IsFree { get; set; }
 
         public Token()
         {
