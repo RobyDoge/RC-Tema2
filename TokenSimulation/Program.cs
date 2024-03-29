@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Configuration;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TokenSimulation
@@ -52,70 +53,88 @@ namespace TokenSimulation
 
         private static void RunSimulation(Computer[] computers)
         {
-            bool firstInput = true;
-            Console.Write("Insert Computer Source: ");
-            var source = int.Parse(Console.ReadLine());
-            Console.Write("Insert Computer Destination: ");
-            var destination = int.Parse(Console.ReadLine());
+            Random random = new Random();
+            var IndexSource = random.Next(0, 10);
+            var IpSource = computers[IndexSource].Ip;
+            Console.WriteLine($"Computer Source: {IndexSource}");
+
+            var IndexDestination = random.Next(0, 10);
+            while(IndexDestination==IndexSource)
+            {
+                IndexDestination = random.Next(0, 10);
+            }
+            var IpDestination = computers[IndexDestination].Ip;
+            Console.WriteLine($"Computer Destination: {IndexDestination}");
             Console.Write("Insert Message: ");
             var message = Console.ReadLine();
 
-           var currentIndex = source;
-            while (true)
+
+           var currentIndex = IndexSource;
+            for(int i=0;i<10;i++)
             {
                 
                     computers[currentIndex].LocalToken = new Token
                     {
                         Message = message,
-                        IsFree = false
+                        IsFree = false,
+                        HasArrivedToDestination = false,
+                        IPDestination = IpDestination,
+                        IPSource = IpSource
                     };
                 
-                SendToken(computers, source, destination, message, currentIndex);
-                currentIndex = source;
-                PrintComputers(computers);
+                SendToken(computers, message, currentIndex, computers[currentIndex].LocalToken);
+                currentIndex = IndexSource;
 
-                Console.Write("Insert Computer Source: ");
-                source = int.Parse(Console.ReadLine());
-                Console.Write("Insert Computer Destination: ");
-                destination = int.Parse(Console.ReadLine());
+                Console.WriteLine();
+                PrintComputers(computers);
+              
+                IndexSource = random.Next(0, 10);
+                IpSource = computers[IndexSource].Ip;
+                Console.WriteLine($"Computer Source: {IndexSource}");
+                IndexDestination = random.Next(0, 10);
+                while (IndexDestination == IndexSource)
+                {
+                    IndexDestination = random.Next(0, 10);
+                }
+                IpDestination = computers[IndexDestination].Ip;
+                Console.WriteLine($"Computer Destination: {IndexDestination}");
                 Console.Write("Insert Message: ");
                 message = Console.ReadLine();
             }
-
-
-
         }
 
-        private static void SendToken(Computer[] computers, int source, int destination, string message, int currentIndex)
+        private static void SendToken(Computer[] computers, string message, int currentIndex, Token token)
         {
-            int previousIndex;
-            Token token = computers[currentIndex].LocalToken;
-            int TimesPassedSource = 0;
+            bool hasBeenSent= false;
             while(true)
             {
-                if(currentIndex==source)
-                {
-                    TimesPassedSource++;
-                    if(TimesPassedSource>1)
+                if (computers[currentIndex].Ip == token.IPSource)
+                { 
+                    hasBeenSent= true;
+                    if(token.HasArrivedToDestination)
                     {
-                        Console.WriteLine($"C{source}: Am primit tokenul inapoi");
+                        Console.WriteLine($"C{currentIndex}: Am primit tokenul inapoi");
+                        token.IsFree = true;
                         break;
                     }
                     else
                     {
-                        Console.WriteLine($"C{source}: Am preluat jetonul");
+                        Console.WriteLine($"C{currentIndex}: Am preluat jetonul");
+                        
                     }
                 }
-                if (currentIndex==destination && TimesPassedSource==1)
+                if (computers[currentIndex].Ip == token.IPDestination && hasBeenSent)
                 {
-                    Console.WriteLine($"C{destination}: Am ajuns la destinatie");
-                    computers[destination].Message = token.Message;
+                    Console.WriteLine($"C{currentIndex}: Am ajuns la destinatie");
+                    computers[currentIndex].Message = token.Message;
+                    token.HasArrivedToDestination = true;
                 }
+
                 computers[currentIndex].LocalToken = null;
                 Console.WriteLine($"C{currentIndex}: Trimite tokenul");
-                previousIndex = currentIndex;
                 currentIndex = (currentIndex + 1) % computers.Length;
                 computers[currentIndex].LocalToken = token;
+                Thread.Sleep(500);
             }
         }
     }

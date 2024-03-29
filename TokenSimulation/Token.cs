@@ -10,7 +10,9 @@ namespace TokenSimulation
     {
         public string Message { get; set; }
         public bool IsFree { get; set; }
-
+        public string IPSource { get; set; }
+        public string IPDestination { get; set; }
+        public bool HasArrivedToDestination { get; set; }
         public Token()
         {
             IsFree = true;
